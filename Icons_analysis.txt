@@ -1,0 +1,110 @@
+﻿Public Sub Icons_Analysis()
+'Create Pilyuganov Anton
+'Date 12/31/2013
+'Licence: mandatory reference to the source!!! 
+
+  Set dic = CreateObject("scripting.dictionary")
+  Dim driver As New SeleniumWrapper.WebDriver
+  Dim By As New By, Assert As New Assert, Verify As New Verify, Waiter As New Waiter
+  driver.Start "firefox", "https://google.com"
+  driver.get "https://www.google.com/"
+  driver.setImplicitWait 5000
+  
+  Dim LastRow_Su As Long
+  Sheets("16x16").Select
+  LastRow_Su = Sheets("16x16").Cells(Sheets("16x16").Rows.Count, "G").End(xlUp).Row + 1
+  Dim LastRow_Su1 As Long
+  LastRow_Su1 = Sheets("16x16").Cells(Sheets("16x16").Rows.Count, "C").End(xlUp).Row
+  Dim column_num As Integer
+
+  For i = LastRow_Su To LastRow_Su1
+  Application.ScreenUpdating = False
+    couts = 1
+    dic.RemoveAll
+    column_num = 7
+    fCaptchaText = ""
+    urii = ""
+    driver.get "/imghp?tbm=isch"
+    driver.findElementById("qbi").Click
+    driver.findElementByLinkText("Загрузить файл").Click
+    driver.findElement(By.XPath("//input[@type='file']")).SendKeys "d:\Ofis\3800\3800\16x16\" & Cells(i, 3).Value
+    driver.setImplicitWait 2000
+cap:
+    If driver.isElementPresent("captcha") = True Then
+      Beep
+      Call ScreenToGIF_NewWorkbook
+      Sheets("16x16").Select
+      driver.Wait 2000
+      Call Captcha
+      driver.windowFocus
+      driver.findElement(By.XPath("//input[@type='text']")).SendKeys fCaptchaText
+      driver.setImplicitWait 4000
+      driver.findElementByName("submit").Click
+        driver.setImplicitWait 2000
+       driver.Wait 2000
+    End If
+    driver.Wait 10
+    If driver.isElementPresent("captcha") = True Then
+    GoTo cap:
+    End If
+
+    Cells(i, 5).Value = driver.getLocation & "&filter=0"
+    Set args1 = driver.findElements(By.XPath("//img/../../../../../h3/a[@href]"))
+    If (args1.Count = 0) Then
+      GoTo Go_next:
+    End If
+    Call xxxslan(args1)
+    driver.setImplicitWait 1000
+    Page = 10
+    If driver.getXpathCount("id('nav')/tbody/tr/td[3]") > 0 Then
+      rrrr2 = driver.getElementIndex("//table[@id='nav']/tbody/tr/td[last()]")
+    Else
+      GoTo 7:
+    End If
+    If rrrr2 > 0 Then
+      Page = Page * (rrrr2 - 1) + 10
+    End If
+    For p = Page To 10 Step -10
+      temp_uri = Cells(i, 5).Value & "&start=" & p
+      driver.get temp_uri
+      driver.setImplicitWait 200
+      driver.Wait 50
+cap1:
+      If driver.isElementPresent("captcha") = True Then
+      Beep
+      Call ScreenToGIF_NewWorkbook
+      Sheets("16x16").Select
+      driver.Wait 2000
+      Call Captcha
+      driver.windowFocus
+      driver.findElement(By.XPath("//input[@type='text']")).SendKeys fCaptchaText
+      driver.setImplicitWait 4000
+      driver.findElementByName("submit").Click
+        driver.setImplicitWait 2000
+       driver.Wait 2000
+    End If
+      
+    driver.Wait 10
+    If driver.isElementPresent("captcha") = True Then
+    GoTo cap1:
+    End If
+      Set args2 = driver.findElements(By.XPath("//img/../../../../../h3/a[@href]"))
+      Call xxxslan(args2)
+    Next p
+7:
+    column_num_pic = column_num
+
+    For Each strKey In dic.Keys()
+      Cells(i, column_num).Value = strKey
+      column_num = column_num + 1
+    Next
+Go_next:
+    driver.setImplicitWait 6000
+    If Right(CStr(i), 2) = "00" Or Right(CStr(i), 2) = "50" Then
+      ThisWorkbook.Save
+    End If
+    Application.ScreenUpdating = False
+  Next i
+  driver.stop
+  Call untitled_32
+End Sub
